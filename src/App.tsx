@@ -1,59 +1,44 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-
-import routes from './routes';
-
-// Uncomment these imports when using miaoda-auth-react for authentication
-// import { AuthProvider, RequireAuth } from 'miaoda-auth-react';
-// import { supabase } from 'supabase-js';
-// import Header from '@/components/common/Header';
+import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { Toaster } from './components/ui/toaster';
+import AppLayout from './components/layout/AppLayout';
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
+import ProductsPage from './pages/ProductsPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const App: React.FC = () => {
-{/*
-    // USING MIAODA-AUTH-REACT (Uncomment when auth is required):
-    // =========================================================
-    // Replace the current App structure with this when using miaoda-auth-react:
-
-    // 1. Wrap everything with AuthProvider (must be inside Router)
-    // 2. Use RequireAuth to protect routes that need authentication
-    // 3. Set whiteList prop for public routes that don't require auth
-
-    // Example structure:
-    // <Router>
-    //   <AuthProvider client={supabase}>
-    //     <ScrollToTop />
-    //     <Toaster />
-    //     <RequireAuth whiteList={["/login", "/403", "/404", "/public/*"]}>
-    //       <Header />
-    //       <Routes>
-    //         ... your routes here ...
-    //       </Routes>
-    //     </RequireAuth>
-    //   </AuthProvider>
-    // </Router>
-
-    // IMPORTANT:
-    // - AuthProvider must be INSIDE Router (it uses useNavigate)
-    // - RequireAuth should wrap Routes, not be inside it
-    // - Add all public paths to the whiteList array
-    // - Remove the custom PrivateRoute component when using RequireAuth
-*/}
   return (
     <Router>
-      <div className="flex flex-col min-h-screen">
-        <main className="flex-grow">
+      <ThemeProvider>
+        <AuthProvider>
           <Routes>
-          {routes.map((route, index) => (
+            <Route path="/login" element={<LoginPage />} />
             <Route
-              key={index}
-              path={route.path}
-              element={route.element}
-            />
-          ))}
-          <Route path="*" element={<Navigate to="/" replace />} />
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route
+                index
+                element={
+                  <ProtectedRoute requiresManager>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="products" element={<ProductsPage />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </main>
-      </div>
+          <Toaster />
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 };
